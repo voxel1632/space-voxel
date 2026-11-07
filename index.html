@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,23 +10,29 @@
 body{
 margin:0;
 font-family:Segoe UI,sans-serif;
-background:
-radial-gradient(circle at top,#233a8b,#111);
 color:white;
-overflow-x:hidden;
+background:
+linear-gradient(
+180deg,
+#020617,
+#111827,
+#1e1b4b
+);
+min-height:100vh;
 }
 
 header{
 padding:20px;
 text-align:center;
-border-bottom:2px solid #00e5ff;
+border-bottom:1px solid rgba(0,229,255,.3);
+backdrop-filter:blur(10px);
 }
 
 .logo{
 font-size:50px;
 font-weight:bold;
 color:#00e5ff;
-text-shadow:0 0 15px #00e5ff;
+text-shadow:0 0 20px #00e5ff;
 }
 
 .hero{
@@ -40,7 +46,8 @@ margin-bottom:10px;
 }
 
 .hero p{
-color:#cfcfcf;
+color:#cbd5e1;
+font-size:18px;
 }
 
 .search{
@@ -50,16 +57,4 @@ padding:20px;
 
 .search input{
 width:80%;
-max-width:800px;
-padding:15px;
-border:none;
-border-radius:12px;
-background:#1e1e1e;
-color:white;
-font-size:16px;
-}
-
-.mods{
-padding:30px;
-display:grid;
-grid-
+max-width
