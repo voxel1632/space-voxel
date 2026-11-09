@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17120f">
+  <title>ForgeHub — Mod Workshop</title>
+  <style>
+    :root{color-scheme:dark;--bg:#17120f;--panel:#211a15;--line:#49372a;--text:#f6eee5;--muted:#b7a89b;--gold:#ffbd55;--red:#c94c28}*{box-sizing:border-box}body{margin:0;padding:32px 16px;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif}.wrap{max-width:900px;margin:auto}h1,h2{line-height:1.2}h1{color:var(--gold)}.note{color:var(--muted);max-width:760px}.panel{padding:22px;margin:20px 0;background:var(--panel);border:1px solid var(--line);border-radius:14px}.form{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form label{display:grid;gap:6px;color:var(--muted)}.form .wide{grid-column:1/-1}input,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#17120f;color:var(--text);font:inherit}textarea{min-height:110px;resize:vertical}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}button,.button{border:1px solid var(--line);border-radius:8px;padding:10px 14px;background:#33251b;color:var(--text);font:inherit;cursor:pointer;text-decoration:none}button.primary{background:#a94e20;border-color:#d16b32}.item{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line)}.item small{display:block;color:var(--muted)}.status{min-height:1.5em;color:var(--gold)}@media(max-width:600px){.form{grid-template-columns:1fr}.form .wide{grid-column:auto}.item{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <a class="button" href="./index.html">← Back to ForgeHub</a>
+    <h1>Mod Workshop</h1>
+    <p class="note">Add mods for this browser, or export the catalog to commit it to the site. GitHub Pages is static: browser changes are local to this browser and are not published for other visitors. Do not put a secret or admin password in this page.</p>
+    <section class="panel">
+      <h2>Add a mod</h2>
+      <form id="modForm" class="form">
+        <label>Mod name *<input name="name" required maxlength="80"></label>
+        <label>Author *<input name="author" required maxlength="60"></label>
+        <label>Category<input name="category" value="Adventure" maxlength="40"></label>
+        <label>Mod version<input name="version" placeholder="1.0.0" maxlength="30"></label>
+        <label>Minecraft versions<input name="minecraft" placeholder="1.21.1, 1.20.4"></label>
+        <label>Rating (0–5)<input name="rating" type="number" min="0" max="5" step="0.1" value="0"></label>
+        <label>Cover image path or URL<input name="image" placeholder="images/example.png"></label>
+        <label>Download file path or URL *<input name="file" required placeholder="mods/Example.jar"></label>
+        <label>Tags, comma-separated<input name="tags" placeholder="magic, exploration"></label>
+        <label>Downloads<input name="downloads" type="number" min="0" value="0"></label>
+        <label class="wide">Description *<textarea name="description" required maxlength="3000"></textarea></label>
+        <label class="wide">Screenshots, comma-separated paths or URLs<input name="screenshots" placeholder="images/screen1.png, images/screen2.png"></label>
+        <label><span><input name="featured" type="checkbox"> Feature this mod</span></label>
+        <label><span><input name="creatorFeatured" type="checkbox"> Feature this creator</span></label>
+        <div class="wide actions"><button class="primary" type="submit">Add mod</button><button type="button" id="exportButton">Export catalog JSON</button><button type="button" id="clearButton">Remove local additions</button></div>
+      </form>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </section>
+    <section class="panel"><h2>Local additions</h2><div id="modList"></div></section>
+  </main>
+  <script>
+    (()=>{
+      'use strict';
+      const STORAGE_KEY='forgehub-mods-session';
+      const $=s=>document.querySelector(s);
+      const read=()=>{try{const value=JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');return Array.isArray(value)?value:[]}catch{return []}};
+      let localMods=read();
+      const split=value=>value.split(',').map(s=>s.trim()).filter(Boolean);
+      function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(localMods));render()}
+      function render(){const list=$('#modList');if(!localMods.length){list.innerHTML='<p class="note">No local additions yet.</p>';return}list.innerHTML=localMods.map((m,i)=>`<div class="item"><div><strong>${escapeHtml(m.name)}</strong><small>By ${escapeHtml(m.author)} · ${escapeHtml(m.category||'Uncategorized')}</small></div><button type="button" data-remove="${i}">Remove</button></div>`).join('')}
+      function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+      $('#modForm').addEventListener('submit',e=>{e.preventDefault();const f=new FormData(e.currentTarget);const item={id:`local-${Date.now()}`,name:f.get('name').trim(),author:f.get('author').trim(),category:f.get('category').trim()||'Adventure',version:f.get('version').trim(),minecraft:split(f.get('minecraft')),rating:Number(f.get('rating'))||0,image:f.get('image').trim(),file:f.get('file').trim(),tags:split(f.get('tags')),downloads:Number(f.get('downloads'))||0,description:f.get('description').trim(),screenshots:split(f.get('screenshots')),featured:f.has('featured'),creatorFeatured:f.has('creatorFeatured'),uploaded:new Date().toISOString().slice(0,10)};localMods.push(item);try{save();e.currentTarget.reset();$('#status').textContent='Mod added in this browser. Refresh ForgeHub to see it.'}catch(err){localMods.pop();$('#status').textContent=`Could not save: ${err.message}`}});
+      $('#modList').addEventListener('click',e=>{const button=e.target.closest('[data-remove]');if(!button)return;localMods.splice(Number(button.dataset.remove),1);save();$('#status').textContent='Local mod removed.'});
+      $('#clearButton').addEventListener('click',()=>{if(!localMods.length)return; if(confirm('Remove all locally added mods from this browser?')){localMods=[];save();$('#status').textContent='Local additions removed.'}});
+      $('#exportButton').addEventListener('click',()=>{let catalog=[];try{catalog=JSON.parse(localStorage.getItem('forgehub-mods-export')||'[]')}catch{};const merged=[...catalog.filter(m=>!localMods.some(x=>x.id===m.id)),...localMods].map(({id,...m})=>m);const blob=new Blob([JSON.stringify(merged,null,2)+'\n'],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mods.json';a.click();URL.revokeObjectURL(url);$('#status').textContent='Downloaded mods.json. Commit it as index/mods.json to publish these entries.'});
+      render();
+    })();
+  </script>
+</body>
+</html>
